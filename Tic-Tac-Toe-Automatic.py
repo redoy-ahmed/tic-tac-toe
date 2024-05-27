@@ -1,35 +1,35 @@
 import sys
 import random
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QLabel, QStyle
-from functools import partial
+from PyQt5.QtWidgets import QLabel, QStyle, QMessageBox
 from PyQt5.QtCore import Qt
+from functools import partial
 
 
-class Window(QtWidgets.QMainWindow):
-
+class TicTacToe(QtWidgets.QMainWindow):
     def __init__(self):
-        super(Window, self).__init__()
+        super().__init__()
 
         # Set the initial size and title of the main window
         self.setGeometry(450, 200, 850, 750)
+        self.setWindowTitle("Tic Tac Toe")
 
         # Hide minimize, maximize, close buttons and make background transparent
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
+        # Initialize UI elements
         self.initUI()
         self.show()
 
-    # Create a central widget for the main window
     def initUI(self):
+        # Set up the main page widget and layout
         self.page = QtWidgets.QWidget()
-        self.page.setStyleSheet("QWidget {background-color: #1f1f2f; border : 2px solid black; border-radius : 20px;}")
+        self.page.setStyleSheet("QWidget {background-color: #1f1f2f; border: 2px solid black; border-radius: 20px;}")
         self.vLayout = QtWidgets.QVBoxLayout()
 
-        # Create a QLabel for App Name with background color and add it to the layout
+        # Add game name label to the layout
         self.addGameNameLabel()
-
         self.vLayout.setAlignment(QtCore.Qt.AlignCenter)
         self.page.setLayout(self.vLayout)
         self.setCentralWidget(self.page)
@@ -38,178 +38,137 @@ class Window(QtWidgets.QMainWindow):
         self.gLayout = QtWidgets.QGridLayout()
         self.vLayout.addLayout(self.gLayout)
 
-        # Add a horizontal layout for "Restart" and "Exit" buttons
+        # Add bottom control buttons
         self.addBottomButtons()
 
-        # Add buttons for the tic-tac-toe grid
+        # Add tic-tac-toe buttons
         self.addButtons()
 
         # Initialize the game state
-        self.initList()
+        self.initGameState()
 
-    # Create a QLabel for App Name with background color and add it to the layout
     def addGameNameLabel(self):
+        # Create and style the game name label
         appNameLabel = QLabel("Tic Tac Toe")
         appNameLabel.setStyleSheet("background-color: #ef927f; color: white; padding: 5px; font-size: 40px;")
-        appNameLabel.setFixedWidth(500)
-        appNameLabel.setFixedHeight(70)
+        appNameLabel.setFixedSize(500, 70)
         appNameLabel.setAlignment(Qt.AlignCenter)
         self.vLayout.addSpacing(30)
         self.vLayout.addWidget(appNameLabel)
         self.vLayout.addSpacing(30)
 
-    # Counter for button indices
     def addButtons(self):
-        self.buttonIndex = 0
-        for row in range(3):
-            for col in range(3):
-                btn = QtWidgets.QPushButton()
-                btn.setMinimumSize(150, 150)
-                btn.setStyleSheet(
-                    "QPushButton {background-color: #4b495f; border : 2px solid black; border-radius : 20px;}")
-                self.gLayout.addWidget(btn, row, col)
+        # Create and style the tic-tac-toe buttons
+        self.buttons = []
+        for index in range(9):
+            btn = QtWidgets.QPushButton()
+            btn.setMinimumSize(150, 150)
+            btn.setStyleSheet(
+                "QPushButton {background-color: #4b495f; border: 2px solid black; border-radius: 20px;}")
+            self.gLayout.addWidget(btn, index // 3, index % 3)
+            btn.clicked.connect(partial(self.userMove, btn, index))
+            self.buttons.append(btn)
 
-                # Connect each button to the buttonClicked method with its index
-                btn.clicked.connect(partial(self.userMove, btn, self.buttonIndex))
-                self.buttonIndex += 1
-
-    # Add two bottom buttons
     def addBottomButtons(self):
-        pixAPI = getattr(QStyle, 'SP_DialogApplyButton')
-
+        # Create and style the bottom control buttons
         self.vLayout.addSpacing(30)
         self.buttonLayout = QtWidgets.QHBoxLayout()
 
-        # Add a "Restart" button to restart the game
-        self.playAgainButton = QtWidgets.QPushButton()
-        icon = self.style().standardIcon(pixAPI)
-        self.playAgainButton.setIcon(icon)
-        self.playAgainButton.setIconSize(self.playAgainButton.size() * 0.10)
-        self.playAgainButton.setFixedSize(90, 90)
-        self.playAgainButton.clicked.connect(self.newGame)
-        # setting border and radius = half of height
-        self.playAgainButton.setStyleSheet(
-            "background-color: #ef927f; color: white; border : 2px solid black; border-radius : 20px; font-size: 20px;")
+        # Add a restart button
+        self.playAgainButton = self.createButton(QStyle.SP_DialogApplyButton, self.newGame)
         self.buttonLayout.addWidget(self.playAgainButton)
 
-        pixAPI = getattr(QStyle, 'SP_DialogCancelButton')
-
-        # Add an "Exit" button to close the game
-        self.exitButton = QtWidgets.QPushButton()
-        icon = self.style().standardIcon(pixAPI)
-        self.exitButton.setIcon(icon)
-        self.exitButton.setIconSize(self.exitButton.size() * 0.10)
-        self.exitButton.setFixedSize(90, 90)
-        self.exitButton.clicked.connect(exitFunction)
-        # setting border and radius = half of height
-        self.exitButton.setStyleSheet(
-            "background-color: #ef927f; color: white; border : 2px solid black; border-radius : 20px; font-size: 20px;")
+        # Add an exit button
+        self.exitButton = self.createButton(QStyle.SP_DialogCancelButton, exitFunction)
         self.buttonLayout.addWidget(self.exitButton)
 
         self.vLayout.addLayout(self.buttonLayout)
 
-    # Initialize the list to track the button states and the click counter
-    def initList(self):
+    def createButton(self, style, func):
+        # Helper method to create a styled button with an icon
+        button = QtWidgets.QPushButton()
+        icon = self.style().standardIcon(style)
+        button.setIcon(icon)
+        button.setIconSize(button.size() * 0.10)
+        button.setFixedSize(90, 90)
+        button.clicked.connect(func)
+        button.setStyleSheet(
+            "background-color: #ef927f; color: white; border: 2px solid black; border-radius: 20px; font-size: 20px;")
+        return button
+
+    def initGameState(self):
+        # Initialize the game state variables
         self.clickList = [''] * 9
         self.clickCounter = 0
         self.win = False
 
-    # Update button text and click_list based on the current player
     def userMove(self, btn, index):
-        self.clickList[index] = "X"
-        btn.setText("X")
-        btn.setStyleSheet("QWidget {background-color: #ef927f; color: #f5f5ff; font-size: 55px;}")
-
-        # Disable the clicked button
-        btn.setEnabled(False)
-        self.clickCounter += 1
-
-        # Check for a winner if at least 5 moves have been made
-        if self.clickCounter > 4:
-            if self.checkWinner('X'):
-                self.gameOver('X')
-
-        # Check for a draw if all buttons are clicked and no winner
-        if self.clickCounter == 9 and not self.win:
-            QtWidgets.QMessageBox.information(self, "Draw!", "It is a draw")
-            self.disableButtons()
-
-        # AI's turn
-        if not self.win and self.clickCounter < 9:
-            self.computerMove()
-
-    # AI makes a move
-    def computerMove(self):
-        index = self.bestMove()
-        if index is not None:
-            self.clickList[index] = 'O'
-            btn = self.gLayout.itemAt(index).widget()
-            btn.setText("O")
-            btn.setStyleSheet("QWidget {background-color: #dd7f9f; color: #f5f5ff; font-size: 55px;}")
-
-            # Disable the clicked button
+        # Handle user move
+        if self.clickList[index] == '':
+            self.clickList[index] = 'X'
+            btn.setText("X")
+            btn.setStyleSheet("QWidget {background-color: #ef927f; color: #f5f5ff; font-size: 55px;}")
             btn.setEnabled(False)
             self.clickCounter += 1
 
-            # Check for a winner if at least 5 moves have been made
-            if self.clickCounter > 4:
-                if self.checkWinner('O'):
-                    self.gameOver('O')
+            # Check game state after user's move
+            if self.checkGameState('X'):
+                return
 
-            # Check for a draw if all buttons are clicked and no winner
-            if self.clickCounter == 9 and not self.win:
-                QtWidgets.QMessageBox.information(self, "Draw!", "It is a draw")
-                self.disableButtons()
+            # If no win or draw, let the computer make a move
+            if self.clickCounter < 9:
+                self.computerMove()
 
-    # Check all possible winning triplets
+    def computerMove(self):
+        # Handle computer move
+        index = self.bestMove()
+        if index is not None:
+            self.clickList[index] = 'O'
+            btn = self.buttons[index]
+            btn.setText("O")
+            btn.setStyleSheet("QWidget {background-color: #dd7f9f; color: #f5f5ff; font-size: 55px;}")
+            btn.setEnabled(False)
+            self.clickCounter += 1
+
+            # Check game state after computer's move
+            self.checkGameState('O')
+
+    def checkGameState(self, player):
+        # Check if the current player has won or if the game is a draw
+        if self.clickCounter > 4 and self.checkWinner(player):
+            self.gameOver(player)
+            return True
+
+        if self.clickCounter == 9 and not self.win:
+            QMessageBox.information(self, "Draw!", "It is a draw")
+            self.disableButtons()
+            return True
+
+        return False
+
     def checkWinner(self, player):
+        # Check if the specified player has won
         win_conditions = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6]
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],  # rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],  # columns
+            [0, 4, 8], [2, 4, 6]  # diagonals
         ]
         for condition in win_conditions:
             if all(self.clickList[i] == player for i in condition):
                 return True
         return False
 
-    # Disable all buttons
-    def disableButtons(self):
-        for i in range(self.gLayout.count()):
-            self.gLayout.itemAt(i).widget().setEnabled(False)
-
-    # Restart the game
-    def newGame(self):
-        self.initList()
-        self.clearButtons()
-        self.enableButtons()
-
-    # Clear the text and style of all buttons
-    def clearButtons(self):
-        for i in range(self.gLayout.count()):
-            widget = self.gLayout.itemAt(i).widget()
-            widget.setText("")
-            widget.setStyleSheet(
-                "QPushButton {background-color: #4b495f; border : 2px solid black; border-radius : 20px;}")
-
-    # Enable all buttons
-    def enableButtons(self):
-        for i in range(self.gLayout.count()):
-            self.gLayout.itemAt(i).widget().setEnabled(True)
-
-    # Heuristic approach: If computer can win, win. If player can win, block.
     def bestMove(self):
+        # Determine the best move for the computer using a heuristic approach
+        # Check if the computer can win in the next move
         for index in range(9):
             if self.clickList[index] == '':
                 self.clickList[index] = 'O'
                 if self.checkWinner('O'):
                     return index
                 self.clickList[index] = ''
+
+        # Check if the player can win in the next move and block them
         for index in range(9):
             if self.clickList[index] == '':
                 self.clickList[index] = 'X'
@@ -220,33 +179,50 @@ class Window(QtWidgets.QMainWindow):
 
         # Otherwise, choose a random empty spot
         empty_spots = [idx for idx in range(9) if self.clickList[idx] == '']
-        if empty_spots:
-            return random.choice(empty_spots)
+        return random.choice(empty_spots) if empty_spots else None
 
-        return None
+    def disableButtons(self):
+        # Disable all buttons
+        for btn in self.buttons:
+            btn.setEnabled(False)
+
+    def newGame(self):
+        # Restart the game
+        self.initGameState()
+        self.clearButtons()
+        self.enableButtons()
+
+    def clearButtons(self):
+        # Clear the text and style of all buttons
+        for btn in self.buttons:
+            btn.setText("")
+            btn.setStyleSheet(
+                "QPushButton {background-color: #4b495f; border: 2px solid black; border-radius: 20px;}")
+
+    def enableButtons(self):
+        # Enable all buttons
+        for btn in self.buttons:
+            btn.setEnabled(True)
 
     def gameOver(self, player):
-        QtWidgets.QMessageBox.information(self, "Winner!", f"Player {player} Won!!")
+        # Handle the end of the game and show the winner
+        QMessageBox.information(self, "Winner!", f"Player {player} Won!!")
         self.disableButtons()
         self.win = True
 
 
-# Terminate the program
 def exitFunction():
-    exit(1)
+    # Terminate the application
+    QtWidgets.qApp.quit()
 
 
-# Create the application and set the style
 def mainFunction():
+    # Create the application and set the style
     app = QtWidgets.QApplication(sys.argv)
-
-    # Set the style of the application
     app.setStyle('Windows')
 
-    # Create the main window
-    Window()
-
-    # Execute the application
+    # Create and show the main window
+    TicTacToe()
     sys.exit(app.exec_())
 
 
