@@ -11,7 +11,7 @@ class Window(QtWidgets.QMainWindow):
         super(Window, self).__init__()
 
         # Set the initial size and title of the main window
-        self.setGeometry(450, 200, 850, 750)
+        self.setGeometry(450, 70, 700, 450)
 
         # Hide minimize, maximize, close buttons and make background transparent
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
