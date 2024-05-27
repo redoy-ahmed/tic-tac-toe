@@ -32,15 +32,13 @@ This is a simple Tic Tac Toe game implemented using PyQt5 for the GUI. The game 
     pip install PyQt5
 
 ### Usages
-1. Run the tic_tac_toe.py file:
-    python tic_tac_toe.py
+1. Run the Tic-Tac-Toe-Manual.py file:
+    python Tic-Tac-Toe-Manual.py
 
 2. The game window will open. Click on the buttons to make your move.
 
 ### Code Structure
-- 'tic_tac_toe.py': The main script that contains the game logic and GUI implementation.
-- assets/: Directory for storing any additional assets like images (if needed).
-
+- 'Tic-Tac-Toe-Manual.py': The main script that contains the game logic and GUI implementation.
 
 ### Game Logic
 - The game starts with an empty 3x3 grid.
