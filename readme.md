@@ -1,6 +1,6 @@
 # Tic Tac Toe with PyQt5
 
-![Tic Tac Toe](path_to_screenshot.png)
+![Tic Tac Toe](https://github.com/redoy-ahmed/tic-tac-toe/blob/main/1.png)
 
 ## Description
 
