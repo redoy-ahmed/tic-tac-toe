@@ -12,7 +12,6 @@ class TicTacToe(QtWidgets.QMainWindow):
 
         # Set the initial size and title of the main window
         self.setGeometry(450, 200, 850, 750)
-        self.setWindowTitle("Tic Tac Toe")
 
         # Hide minimize, maximize, close buttons and make background transparent
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
