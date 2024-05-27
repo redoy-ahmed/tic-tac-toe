@@ -53,6 +53,7 @@ class Window(QtWidgets.QMainWindow):
         appNameLabel.setFixedWidth(500)
         appNameLabel.setFixedHeight(70)
         appNameLabel.setAlignment(Qt.AlignCenter)
+        self.vLayout.addSpacing(30)
         self.vLayout.addWidget(appNameLabel)
         self.vLayout.addSpacing(30)
 
