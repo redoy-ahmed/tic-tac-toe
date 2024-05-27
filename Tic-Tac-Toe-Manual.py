@@ -113,13 +113,13 @@ class Window(QtWidgets.QMainWindow):
         self.win = False
 
     # Update button text and click_list based on the current player
-    def buttonClicked(self, btn, indx):
+    def buttonClicked(self, btn, index):
         if self.clickCounter % 2 == 0:
-            self.clickList[indx] = "X"
+            self.clickList[index] = "X"
             btn.setText("X")
             btn.setStyleSheet("QWidget {background-color: #ef927f; color: #f5f5ff; font-size: 55px;}")
         else:
-            self.clickList[indx] = "O"
+            self.clickList[index] = "O"
             btn.setText("O")
             btn.setStyleSheet("QWidget {background-color: #dd7f9f; color: #f5f5ff; font-size: 55px;}")
 
@@ -129,7 +129,7 @@ class Window(QtWidgets.QMainWindow):
 
         # Check for a winner if at least 5 moves have been made
         if self.clickCounter > 4:
-            self.check()
+            self.checkWinner()
 
         # Check for a draw if all buttons are clicked and no winner
         if self.clickCounter == 9 and not self.win:
@@ -137,10 +137,15 @@ class Window(QtWidgets.QMainWindow):
             self.disableButtons()
 
     # Check all possible winning triplets
-    def check(self):
-        for triplet in [(0, 1, 2), (3, 4, 5), (6, 7, 8),
-                        (0, 3, 6), (1, 4, 7), (2, 5, 8),
-                        (0, 4, 8), (2, 4, 6)]:
+    def checkWinner(self):
+        for triplet in [(0, 1, 2),
+                        (3, 4, 5),
+                        (6, 7, 8),
+                        (0, 3, 6),
+                        (1, 4, 7),
+                        (2, 5, 8),
+                        (0, 4, 8),
+                        (2, 4, 6)]:
             self.tripletCheck(*triplet)
 
     # Check if the values in the triplet are the same
