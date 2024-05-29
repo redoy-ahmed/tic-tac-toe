@@ -43,11 +43,11 @@ class TicTacToe(QtWidgets.QMainWindow):
         self.gLayout = QtWidgets.QGridLayout()
         self.vLayout.addLayout(self.gLayout)
 
+        # Add tic-tac-toe buttons
+        self.addGridButtons()
+
         # Add bottom control buttons
         self.addBottomButtons()
-
-        # Add tic-tac-toe buttons
-        self.addButtons()
 
         # Initialize the game state
         self.initGameState()
@@ -71,7 +71,7 @@ class TicTacToe(QtWidgets.QMainWindow):
         self.vLayout.addWidget(appNameLabel)
         self.vLayout.addSpacing(30)
 
-    def addButtons(self):
+    def addGridButtons(self):
         # Create and style the tic-tac-toe buttons
         self.buttons = []
         for index in range(9):
@@ -164,8 +164,8 @@ class TicTacToe(QtWidgets.QMainWindow):
                 self.clickList[index] = ''
 
         # Otherwise, choose a random empty spot
-        empty_spots = [idx for idx in range(9) if self.clickList[idx] == '']
-        return random.choice(empty_spots) if empty_spots else None
+        emptySpots = [idx for idx in range(9) if self.clickList[idx] == '']
+        return random.choice(emptySpots) if emptySpots else None
 
     # endregion
 
