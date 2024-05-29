@@ -260,5 +260,6 @@ def mainFunction():
     sys.exit(app.exec_())
 
 
+# Script entry point
 if __name__ == '__main__':
     mainFunction()
