@@ -2,16 +2,22 @@ import sys
 import random
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QLabel, QStyle, QMessageBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from functools import partial
 
 
 class TicTacToe(QtWidgets.QMainWindow):
+
+    # region init
     def __init__(self):
         super().__init__()
 
         # Set the initial size and title of the main window
         self.setGeometry(450, 70, 700, 450)
+
+        # Set the initial dragging state
+        self.dragging = False
+        self.dragStartPosition = QPoint()
 
         # Hide minimize, maximize, close buttons and make background transparent
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint)
@@ -46,6 +52,15 @@ class TicTacToe(QtWidgets.QMainWindow):
         # Initialize the game state
         self.initGameState()
 
+    def initGameState(self):
+        # Initialize the game state variables
+        self.clickList = [''] * 9
+        self.clickCounter = 0
+        self.win = False
+
+    # endregion
+
+    # region draw game window components
     def addGameNameLabel(self):
         # Create and style the game name label
         appNameLabel = QLabel("Tic Tac Toe")
@@ -95,12 +110,9 @@ class TicTacToe(QtWidgets.QMainWindow):
             "background-color: #ef927f; color: white; border: 2px solid black; border-radius: 20px; font-size: 20px;")
         return button
 
-    def initGameState(self):
-        # Initialize the game state variables
-        self.clickList = [''] * 9
-        self.clickCounter = 0
-        self.win = False
+    # endregion
 
+    # region game moves
     def userMove(self, btn, index):
         # Handle user move
         if self.clickList[index] == '':
@@ -132,6 +144,32 @@ class TicTacToe(QtWidgets.QMainWindow):
             # Check game state after computer's move
             self.checkGameState('O')
 
+    def bestMove(self):
+        # Determine the best move for the computer using a heuristic approach
+        # Check if the computer can win in the next move
+        for index in range(9):
+            if self.clickList[index] == '':
+                self.clickList[index] = 'O'
+                if self.checkWinner('O'):
+                    return index
+                self.clickList[index] = ''
+
+        # Check if the player can win in the next move and block them
+        for index in range(9):
+            if self.clickList[index] == '':
+                self.clickList[index] = 'X'
+                if self.checkWinner('X'):
+                    self.clickList[index] = ''
+                    return index
+                self.clickList[index] = ''
+
+        # Otherwise, choose a random empty spot
+        empty_spots = [idx for idx in range(9) if self.clickList[idx] == '']
+        return random.choice(empty_spots) if empty_spots else None
+
+    # endregion
+
+    # region game state check
     def checkGameState(self, player):
         # Check if the current player has won or if the game is a draw
         if self.clickCounter > 4 and self.checkWinner(player):
@@ -157,28 +195,16 @@ class TicTacToe(QtWidgets.QMainWindow):
                 return True
         return False
 
-    def bestMove(self):
-        # Determine the best move for the computer using a heuristic approach
-        # Check if the computer can win in the next move
-        for index in range(9):
-            if self.clickList[index] == '':
-                self.clickList[index] = 'O'
-                if self.checkWinner('O'):
-                    return index
-                self.clickList[index] = ''
+    def gameOver(self, player):
+        # Handle the end of the game and show the winner
+        QMessageBox.information(self, "Winner!", f"Player {player} Won!!")
+        self.disableButtons()
+        self.win = True
 
-        # Check if the player can win in the next move and block them
-        for index in range(9):
-            if self.clickList[index] == '':
-                self.clickList[index] = 'X'
-                if self.checkWinner('X'):
-                    self.clickList[index] = ''
-                    return index
-                self.clickList[index] = ''
-
-        # Otherwise, choose a random empty spot
-        empty_spots = [idx for idx in range(9) if self.clickList[idx] == '']
-        return random.choice(empty_spots) if empty_spots else None
+    def enableButtons(self):
+        # Enable all buttons
+        for btn in self.buttons:
+            btn.setEnabled(True)
 
     def disableButtons(self):
         # Disable all buttons
@@ -198,16 +224,25 @@ class TicTacToe(QtWidgets.QMainWindow):
             btn.setStyleSheet(
                 "QPushButton {background-color: #4b495f; border: 2px solid black; border-radius: 20px;}")
 
-    def enableButtons(self):
-        # Enable all buttons
-        for btn in self.buttons:
-            btn.setEnabled(True)
+    # endregion
 
-    def gameOver(self, player):
-        # Handle the end of the game and show the winner
-        QMessageBox.information(self, "Winner!", f"Player {player} Won!!")
-        self.disableButtons()
-        self.win = True
+    # region draggable feature
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.dragging = True
+            self.dragStartPosition = event.globalPos() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if self.dragging:
+            self.move(event.globalPos() - self.dragStartPosition)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.dragging = False
+            event.accept()
+    # endregion
 
 
 def exitFunction():
